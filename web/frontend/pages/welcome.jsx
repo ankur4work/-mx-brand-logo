@@ -18,8 +18,12 @@ export default function WelcomePage() {
   useEffect(() => {
     if (isLoading || isFetching) return;
 
-    if (data?.hasActiveSubscription) {
+    if (data?.hasActiveSubscription === true) {
       navigate("/", { replace: true });
+      return;
+    }
+
+    if (data?.hasActiveSubscription !== false) {
       return;
     }
 

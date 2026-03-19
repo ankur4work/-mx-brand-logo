@@ -39,8 +39,12 @@ export default function BillingRequired() {
 
   useEffect(() => {
     if (isLoading || isFetching) return;
-    if (subscriptionData?.hasActiveSubscription) {
+    if (subscriptionData?.hasActiveSubscription === true) {
       navigate("/", { replace: true });
+      return;
+    }
+
+    if (subscriptionData?.hasActiveSubscription !== false) {
       return;
     }
 

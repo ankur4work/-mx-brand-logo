@@ -112,6 +112,30 @@ async function loadStoredSessionForShop(shop) {
   return sessions.find((session) => !session.isOnline) || sessions[0];
 }
 
+function getStoreHandleFromReferrer(req) {
+  const referrer = req.get("referer");
+  if (!referrer) {
+    return "";
+  }
+
+  try {
+    const url = new URL(referrer);
+    const match = url.pathname.match(/\/store\/([^/]+)\//i);
+    return match?.[1] || "";
+  } catch (_error) {
+    return "";
+  }
+}
+
+function getShopFromReferrer(req) {
+  const storeHandle = getStoreHandleFromReferrer(req);
+  if (!storeHandle) {
+    return "";
+  }
+
+  return shopify.api.utils.sanitizeShop(`${storeHandle}.myshopify.com`) || "";
+}
+
 async function getShopFromRequest(req) {
   const queryShop = shopify.api.utils.sanitizeShop(
     String(req.query.shop || req.headers["x-shopify-shop-domain"] || "")
@@ -123,7 +147,7 @@ async function getShopFromRequest(req) {
 
   const bearerToken = req.headers.authorization?.match(/Bearer (.*)/)?.[1];
   if (!bearerToken) {
-    return "";
+    return getShopFromReferrer(req);
   }
 
   try {
@@ -134,7 +158,7 @@ async function getShopFromRequest(req) {
       ) || ""
     );
   } catch (_error) {
-    return "";
+    return getShopFromReferrer(req);
   }
 }
 
@@ -177,7 +201,8 @@ async function getSessionForRequest(req, res) {
   const shop =
     validatedSession?.shop ||
     req.query.shop ||
-    req.headers["x-shopify-shop-domain"];
+    req.headers["x-shopify-shop-domain"] ||
+    getShopFromReferrer(req);
 
   const offlineSession = await loadStoredSessionForShop(String(shop || ""));
   if (offlineSession) return offlineSession;
@@ -231,6 +256,15 @@ function getManagedPricingUrl(shop) {
   }
 
   return `https://admin.shopify.com/store/${storeHandle}/charges/${SHOPIFY_APP_HANDLE}/pricing_plans`;
+}
+
+function getEmbeddedAppAdminUrl(req, shop) {
+  const storeHandle = getStoreHandle(shop) || getStoreHandleFromReferrer(req);
+  if (!storeHandle || !SHOPIFY_APP_HANDLE) {
+    return "";
+  }
+
+  return `https://admin.shopify.com/store/${storeHandle}/apps/${SHOPIFY_APP_HANDLE}`;
 }
 
 function buildBillingRequiredPath(req) {
@@ -429,6 +463,19 @@ app.get("/billing/start", async (req, res) => {
       formatErrorMessage(error)
     );
   }
+});
+
+app.get("/welcome", async (req, res) => {
+  const shop =
+    String(req.query.shop || "") ||
+    `${getStoreHandleFromReferrer(req)}.myshopify.com`;
+  const embeddedAppUrl = getEmbeddedAppAdminUrl(req, shop);
+
+  if (embeddedAppUrl) {
+    return res.redirect(embeddedAppUrl);
+  }
+
+  return res.redirect("/");
 });
 
 app.get("/api/createSubscription", async (req, res) => {

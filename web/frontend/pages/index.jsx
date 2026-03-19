@@ -48,7 +48,7 @@ export default function HomePage() {
 
   useEffect(() => {
     if (isLoading || isFetching) return;
-    if (subscriptionData?.hasActiveSubscription) return;
+    if (subscriptionData?.hasActiveSubscription !== false) return;
 
     const params = new URLSearchParams();
     const shop = getCurrentShop();
