@@ -10,8 +10,6 @@ export default function ExitIframe() {
   useEffect(() => {
     if (!app || !search) return;
 
-    if (!search) return;
-
     const params = new URLSearchParams(search);
     const redirectUri = params.get("redirectUri");
     if (!redirectUri) return;

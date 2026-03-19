@@ -23,7 +23,7 @@ export default function Routes({ pages }) {
     <Route key={path} path={path} element={<Component />} />
   ));
 
-  const NotFound = routes.find(({ path }) => path === "/notFound").component;
+  const NotFound = routes.find(({ path }) => path === "/notfound").component;
 
   return (
     <div>
@@ -49,7 +49,7 @@ function useRoutes(pages) {
          * Only lowercase the first letter. This allows the developer to use camelCase
          * dynamic paths while ensuring their standard routes are normalized to lowercase.
          */
-        .replace(/\b[A-Z]/, (firstLetter) => firstLetter.toLowerCase())
+        .replace(/[A-Z]/g, (letter) => letter.toLowerCase())
         /**
          * Convert /[handle].jsx and /[...handle].jsx to /:handle.jsx for react-router-dom
          */
