@@ -44,7 +44,7 @@ Required production values:
 - `SESSION_STORAGE=mongodb`
 - `MONGODB_URI`
 - `MONGODB_DB_NAME`
-- `PORT=3001`
+- `PORT=3011`
 
 ### 5. Start with pm2
 ```bash

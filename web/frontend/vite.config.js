@@ -1,10 +1,17 @@
 import { defineConfig, loadEnv } from "vite";
-import { dirname } from "path";
+import { dirname, resolve } from "path";
 import { fileURLToPath } from "url";
 import https from "https";
 import react from "@vitejs/plugin-react";
 
-process.env = {...process.env, ...loadEnv("", process.cwd())};
+const frontendDir = dirname(fileURLToPath(import.meta.url));
+const webDir = resolve(frontendDir, "..");
+
+process.env = {
+  ...process.env,
+  ...loadEnv("", frontendDir, ""),
+  ...loadEnv("", webDir, ""),
+};
 
 
 console.log("API key: ", process.env.SHOPIFY_API_KEY);
@@ -49,7 +56,7 @@ if (host === "localhost") {
 }
 
 export default defineConfig({
-  root: dirname(fileURLToPath(import.meta.url)),
+  root: frontendDir,
   plugins: [react()],
   define: {
     "process.env.SHOPIFY_API_KEY": JSON.stringify(process.env.SHOPIFY_API_KEY),
