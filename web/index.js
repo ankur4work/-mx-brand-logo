@@ -79,8 +79,6 @@ app.post(
   shopify.processWebhooks({ webhookHandlers: GDPRWebhookHandlers })
 );
 
-app.use("/api/*", shopify.validateAuthenticatedSession());
-
 function getSession(res) {
   return res.locals?.shopify?.session || null;
 }
@@ -113,6 +111,62 @@ async function loadStoredSessionForShop(shop) {
 
   return sessions.find((session) => !session.isOnline) || sessions[0];
 }
+
+async function getShopFromRequest(req) {
+  const queryShop = shopify.api.utils.sanitizeShop(
+    String(req.query.shop || req.headers["x-shopify-shop-domain"] || "")
+  );
+
+  if (queryShop) {
+    return queryShop;
+  }
+
+  const bearerToken = req.headers.authorization?.match(/Bearer (.*)/)?.[1];
+  if (!bearerToken) {
+    return "";
+  }
+
+  try {
+    const payload = await shopify.api.session.decodeSessionToken(bearerToken);
+    return (
+      shopify.api.utils.sanitizeShop(
+        String(payload.dest || "").replace(/^https:\/\//i, "")
+      ) || ""
+    );
+  } catch (_error) {
+    return "";
+  }
+}
+
+async function attachOfflineSession(req, res, next) {
+  const existingSession = getSession(res);
+  if (existingSession) {
+    return next();
+  }
+
+  const shop = await getShopFromRequest(req);
+  if (!shop) {
+    return res.status(HTTP_STATUS.UNAUTHORIZED).send({
+      error: "Missing or invalid shop for this request",
+    });
+  }
+
+  const session = await loadStoredSessionForShop(shop);
+  if (!session) {
+    return res.status(HTTP_STATUS.UNAUTHORIZED).send({
+      error: "No stored session found for this shop",
+    });
+  }
+
+  res.locals.shopify = {
+    ...(res.locals.shopify || {}),
+    session,
+  };
+
+  return next();
+}
+
+app.use("/api/*", attachOfflineSession);
 
 async function getSessionForRequest(req, res) {
   const validatedSession = getSession(res);
