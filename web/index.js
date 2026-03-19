@@ -506,7 +506,6 @@ const serveFrontend = async (_req, res) => {
 if (process.env.NODE_ENV === "production") {
   app.use(
     "/*",
-    shopify.ensureInstalledOnShop(),
     (req, res, next) => {
       if (req.path === "/billing-required" || req.path === "/exitiframe") {
         return next();
