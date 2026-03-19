@@ -1,11 +1,15 @@
-import { Loading } from "@shopify/app-bridge-react";
+import { Loading, useAppBridge } from "@shopify/app-bridge-react";
+import { Redirect } from "@shopify/app-bridge/actions";
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
 export default function ExitIframe() {
+  const app = useAppBridge();
   const { search } = useLocation();
 
   useEffect(() => {
+    if (!app || !search) return;
+
     if (!search) return;
 
     const params = new URLSearchParams(search);
@@ -13,14 +17,17 @@ export default function ExitIframe() {
     if (!redirectUri) return;
 
     const decodedRedirectUri = decodeURIComponent(redirectUri);
+    const redirect = Redirect.create(app);
+    const currentOrigin = window.location.origin;
+    const targetOrigin = new URL(decodedRedirectUri).origin;
 
-    if (window.top && window.top !== window) {
-      window.top.location.replace(decodedRedirectUri);
+    if (targetOrigin === currentOrigin) {
+      redirect.dispatch(Redirect.Action.APP, decodedRedirectUri);
       return;
     }
 
-    window.location.replace(decodedRedirectUri);
-  }, [search]);
+    redirect.dispatch(Redirect.Action.REMOTE, decodedRedirectUri);
+  }, [app, search]);
 
   return <Loading />;
 }
