@@ -2,7 +2,7 @@
 
 client_id = "04e6f1743b6ee8410507c0768d8282a6"
 name = "mx-brand-logo"
-application_url = "https://example.com"
+application_url = "https://mx-brand-logo.solnix.store"
 embedded = true
 handle = "mx-brand-logo-buxton"
 
@@ -14,7 +14,7 @@ api_version = "2026-04"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = ""
+scopes = "read_products,write_products"
 
 [auth]
-redirect_urls = [ "https://example.com/api/auth" ]
+redirect_urls = [ "https://mx-brand-logo.solnix.store/api/auth/callback" ]
