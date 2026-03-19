@@ -16,18 +16,6 @@ export default function ExitIframe() {
 
     const decodedRedirectUri = decodeURIComponent(redirectUri);
     const redirect = Redirect.create(app);
-    const currentOrigin = window.location.origin;
-    const targetUrl = new URL(decodedRedirectUri);
-    const targetOrigin = targetUrl.origin;
-
-    if (targetOrigin === currentOrigin) {
-      redirect.dispatch(
-        Redirect.Action.APP,
-        `${targetUrl.pathname}${targetUrl.search}${targetUrl.hash}`
-      );
-      return;
-    }
-
     redirect.dispatch(Redirect.Action.REMOTE, decodedRedirectUri);
   }, [app, search]);
 
