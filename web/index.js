@@ -294,7 +294,28 @@ const BillingManager = {
       response?.currentAppInstallation?.activeSubscriptions ||
       response?.data?.currentAppInstallation?.activeSubscriptions ||
       [];
-    const activeSubscription = subscriptions[0] || null;
+    const activeSubscription =
+      subscriptions.find((subscription) => {
+        const status = String(subscription?.status || "").toUpperCase();
+        return !status || status === "ACTIVE" || status === "ACCEPTED";
+      }) ||
+      subscriptions[0] ||
+      null;
+
+    console.log(
+      "[billing-status]",
+      JSON.stringify({
+        shop: session.shop,
+        subscriptions: subscriptions.map((subscription) => ({
+          id: subscription?.id,
+          name: subscription?.name,
+          status: subscription?.status,
+          test: subscription?.test,
+        })),
+        activePlanName: activeSubscription?.name || null,
+        hasActiveSubscription: Boolean(activeSubscription),
+      })
+    );
 
     return {
       tier: activeSubscription ? "premium" : "free",

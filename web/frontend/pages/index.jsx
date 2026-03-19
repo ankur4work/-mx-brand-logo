@@ -40,10 +40,17 @@ export default function HomePage() {
     url: withShopQuery("/api/hasActiveSubscription"),
   });
 
-  const currentPlan = useMemo(
-    () => (subscriptionData?.hasActiveSubscription ? "premium" : "locked"),
-    [subscriptionData]
-  );
+  const currentPlan = useMemo(() => {
+    if (subscriptionData?.hasActiveSubscription === true) {
+      return "premium";
+    }
+
+    if (subscriptionData?.hasActiveSubscription === false) {
+      return "locked";
+    }
+
+    return "checking";
+  }, [subscriptionData]);
   const activePlanName = subscriptionData?.activePlanName;
 
   useEffect(() => {
@@ -61,7 +68,11 @@ export default function HomePage() {
   }, [isFetching, isLoading, navigate, subscriptionData]);
 
   const currentPlanLabel =
-    currentPlan === "premium" ? activePlanName || "Pro" : "Locked";
+    currentPlan === "premium"
+      ? activePlanName || "Pro"
+      : currentPlan === "locked"
+        ? "Locked"
+        : "Checking...";
 
   const shellStyle = {
     background:
