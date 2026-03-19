@@ -1,0 +1,27 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "73654e784da23f5781eaabbba680bb28"
+name = "LogoFlow Marquee"
+application_url = "https://app4.appsdevelopment.in"
+embedded = true
+handle = "mx-brand-logo"
+
+[webhooks]
+api_version = "2025-01"
+
+  [[webhooks.subscriptions]]
+  uri = "/api/webhooks"
+  compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
+
+[auth]
+redirect_urls = [
+  "https://app4.appsdevelopment.in/auth/callback",
+  "https://app4.appsdevelopment.in/auth/shopify/callback",
+  "https://app4.appsdevelopment.in/api/auth/callback"
+]
+
+[pos]
+embedded = false
+
+[build]
+automatically_update_urls_on_dev = true

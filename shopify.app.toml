@@ -1,0 +1,34 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "bfb95502aa8f4f718b14d09136fef838"
+application_url = "https://qui-diffs-hewlett-todd.trycloudflare.com"
+embedded = true
+name = "Staging"
+handle = "staging-76"
+
+[build]
+automatically_update_urls_on_dev = true
+dev_store_url = "shivam-development-store.myshopify.com"
+
+[webhooks]
+api_version = "2022-10"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+
+use_legacy_install_flow = true
+
+[auth]
+redirect_urls = [
+  "https://qui-diffs-hewlett-todd.trycloudflare.com/auth/callback",
+  "https://qui-diffs-hewlett-todd.trycloudflare.com/auth/shopify/callback",
+  "https://qui-diffs-hewlett-todd.trycloudflare.com/api/auth/callback"
+]
+
+[app_proxy]
+url = "https://qui-diffs-hewlett-todd.trycloudflare.com/api/scroll-to-top"
+subpath = "scroll-to-top"
+prefix = "apps"
+
+[pos]
+embedded = false

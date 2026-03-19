@@ -1,0 +1,93 @@
+.setup-guide-container {
+    margin: 20px 0;
+    padding: 20px;
+    border-radius: 10px;
+  }
+  
+  .code-sinppet {
+    border-radius: 5px;
+    overflow-x: auto;
+  }
+  
+  .code-sinppet-btn {
+    font-weight: 600;
+    padding: 50px 15px;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin: 0.5rem 0;
+    background-color: rgb(40, 44, 52);
+  }
+
+  .setup-guide-container h2{
+    font-weight:900;
+    margin-bottom: 15px;
+  }
+
+  .setup-guide-container h3{
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  
+  .setup-guide-container h4{
+    font-weight: 700;
+    margin: 20px 0;
+    font-size: 20px;
+  }
+  
+  .setup-guide-container p{
+    margin-bottom: 10px;
+  }
+
+  .copy-code-flex{
+    display: flex;
+    gap: 10px;
+  }
+  
+  .setup-guide-container img {
+    width: auto;
+    height: 100%;
+    border-radius: 5px;
+    box-shadow: 2px 2px 5px;
+    margin: 10px 0;
+  }
+
+  .instruction-points{
+    margin-bottom: 20px;
+  }
+
+
+  .setup-guide-container pre::-webkit-scrollbar {
+    display: none;
+}
+
+ .whishlist-adavance-setup,
+ .whishlist-basic-setup{
+  background-color: white;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 10px;
+ }
+
+
+@media (max-width: 600px){
+  .setup-guide-container img {
+    width: 100%;
+  }
+}
+
+.instruction-points{
+  background: #f5f5f5;
+  padding: 20px;
+  border-radius: 20px;
+}
+
+
+
+
+
+
+
+  
