@@ -1,5 +1,5 @@
 // @ts-check
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import {
   Badge,
   Card,
@@ -8,8 +8,9 @@ import {
   Page,
   TopBar,
 } from "@shopify/polaris";
+import { useNavigate } from "react-router-dom";
 import { useAppQuery } from "../hooks";
-import { withShopQuery } from "../utils/shop";
+import { getCurrentHost, getCurrentShop, withShopQuery } from "../utils/shop";
 
 const brandMark = `data:image/svg+xml;utf8,${encodeURIComponent(`
   <svg xmlns="http://www.w3.org/2000/svg" width="120" height="32" viewBox="0 0 120 32" fill="none">
@@ -23,6 +24,7 @@ const brandMark = `data:image/svg+xml;utf8,${encodeURIComponent(`
 `)}`;
 
 export default function HomePage() {
+  const navigate = useNavigate();
   const logo = {
     width: 120,
     topBarSource: brandMark,
@@ -43,6 +45,20 @@ export default function HomePage() {
     [subscriptionData]
   );
   const activePlanName = subscriptionData?.activePlanName;
+
+  useEffect(() => {
+    if (isLoading || isFetching) return;
+    if (subscriptionData?.hasActiveSubscription) return;
+
+    const params = new URLSearchParams();
+    const shop = getCurrentShop();
+    const host = getCurrentHost();
+    if (shop) params.set("shop", shop);
+    if (host) params.set("host", host);
+
+    const query = params.toString();
+    navigate(`/billing-required${query ? `?${query}` : ""}`, { replace: true });
+  }, [isFetching, isLoading, navigate, subscriptionData]);
 
   const currentPlanLabel =
     currentPlan === "premium" ? activePlanName || "Pro" : "Locked";

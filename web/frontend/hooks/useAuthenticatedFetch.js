@@ -1,6 +1,6 @@
 import { authenticatedFetch } from "@shopify/app-bridge-utils";
 import { useAppBridge } from "@shopify/app-bridge-react";
-import { Redirect } from "@shopify/app-bridge/actions";
+import { withShopQuery } from "../utils/shop";
 
 /**
  * A hook that returns an auth-aware fetch function.
@@ -20,23 +20,21 @@ export function useAuthenticatedFetch() {
 
   return async (uri, options) => {
     const response = await fetchFunction(uri, options);
-    checkHeadersForReauthorization(response.headers, app);
+    checkHeadersForReauthorization(response.headers);
     return response;
   };
 }
 
-function checkHeadersForReauthorization(headers, app) {
+function checkHeadersForReauthorization(headers) {
   if (headers.get("X-Shopify-API-Request-Failure-Reauthorize") === "1") {
     const authUrlHeader =
       headers.get("X-Shopify-API-Request-Failure-Reauthorize-Url") ||
       `/api/auth`;
-
-    const redirect = Redirect.create(app);
-    redirect.dispatch(
-      Redirect.Action.REMOTE,
-      authUrlHeader.startsWith("/")
-        ? `https://${window.location.host}${authUrlHeader}`
-        : authUrlHeader
-    );
+    const redirectUri = authUrlHeader.startsWith("/")
+      ? `https://${window.location.host}${authUrlHeader}`
+      : authUrlHeader;
+    const authStartUrl = new URL(withShopQuery("/auth/start"), window.location.origin);
+    authStartUrl.searchParams.set("redirectUri", redirectUri);
+    window.location.assign(authStartUrl.toString());
   }
 }

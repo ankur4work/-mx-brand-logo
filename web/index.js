@@ -45,6 +45,37 @@ app.get(
   shopify.redirectToShopifyOrAppRoot()
 );
 
+app.get("/auth/start", async (req, res) => {
+  const shop = String(
+    req.query.shop || req.headers["x-shopify-shop-domain"] || ""
+  );
+
+  if (!shop) {
+    return handleError(
+      res,
+      HTTP_STATUS.BAD_REQUEST,
+      "Missing shop for auth redirect"
+    );
+  }
+
+  const redirectUri =
+    req.query.redirectUri ||
+    `https://${req.get("host")}${shopify.config.auth.path}?shop=${encodeURIComponent(
+      shop
+    )}`;
+
+  if (req.query.embedded === "1" || req.query.host) {
+    return shopify.redirectOutOfApp({
+      req,
+      res,
+      redirectUri: String(redirectUri),
+      shop,
+    });
+  }
+
+  return res.redirect(String(redirectUri));
+});
+
 app.post(
   shopify.config.webhooks.path,
   shopify.processWebhooks({ webhookHandlers: GDPRWebhookHandlers })
@@ -163,6 +194,10 @@ function buildExitIframeRedirect(req, shop, redirectUri) {
   }).toString();
 
   return `${shopify.config.exitIframePath}?${queryParams}`;
+}
+
+function isEmbeddedRequest(req) {
+  return req.query.embedded === "1" || Boolean(req.query.host);
 }
 
 const BillingManager = {
@@ -306,6 +341,38 @@ app.get("/api/billing-required", async (req, res) => {
       appHandle: SHOPIFY_APP_HANDLE,
       pricingUrl: getManagedPricingUrl(session.shop),
     });
+  } catch (error) {
+    handleError(
+      res,
+      HTTP_STATUS.INTERNAL_SERVER_ERROR,
+      formatErrorMessage(error)
+    );
+  }
+});
+
+app.get("/billing/start", async (req, res) => {
+  try {
+    const session = await getSessionForRequest(req, res);
+    if (!session) {
+      return handleError(
+        res,
+        HTTP_STATUS.UNAUTHORIZED,
+        "Unable to resolve an app session for this shop"
+      );
+    }
+
+    const redirectUri = getManagedPricingUrl(session.shop);
+
+    if (isEmbeddedRequest(req)) {
+      return shopify.redirectOutOfApp({
+        req,
+        res,
+        redirectUri,
+        shop: session.shop,
+      });
+    }
+
+    return res.redirect(redirectUri);
   } catch (error) {
     handleError(
       res,
@@ -503,29 +570,7 @@ const serveFrontend = async (_req, res) => {
     .send(html);
 };
 
-if (process.env.NODE_ENV === "production") {
-  app.use(
-    "/*",
-    (req, res, next) => {
-      if (req.path === "/billing-required" || req.path === "/exitiframe") {
-        return next();
-      }
-      return requireActivePlan(req, res, next);
-    },
-    serveFrontend
-  );
-} else {
-  app.use(
-    "/*",
-    (req, res, next) => {
-      if (req.path === "/billing-required" || req.path === "/exitiframe") {
-        return next();
-      }
-      return requireActivePlan(req, res, next);
-    },
-    serveFrontend
-  );
-}
+app.use("/*", serveFrontend);
 
 app.listen(PORT, () =>
   console.log(`Server running on http://localhost:${PORT}`)
