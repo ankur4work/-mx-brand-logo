@@ -1,12 +1,26 @@
 // @ts-check
 import React, { useEffect, useRef, useState } from "react";
 import { Banner, Button, Card, Frame, Layout, Loading, Page } from "@shopify/polaris";
+import { useNavigate } from "react-router-dom";
+import { useAppQuery } from "../hooks";
 import { withShopQuery } from "../utils/shop";
 
 export default function BillingRequired() {
+  const navigate = useNavigate();
   const hasAttemptedRedirect = useRef(false);
   const [redirecting, setRedirecting] = useState(false);
   const [banner, setBanner] = useState({ msg: "", status: null });
+  const {
+    data: subscriptionData,
+    isLoading,
+    isFetching,
+  } = useAppQuery({
+    url: withShopQuery("/api/hasActiveSubscription"),
+    reactQueryOptions: {
+      refetchInterval: 2000,
+      staleTime: 0,
+    },
+  });
 
   function openPricing(auto = false) {
     try {
@@ -24,14 +38,20 @@ export default function BillingRequired() {
   }
 
   useEffect(() => {
+    if (isLoading || isFetching) return;
+    if (subscriptionData?.hasActiveSubscription) {
+      navigate("/", { replace: true });
+      return;
+    }
+
     if (hasAttemptedRedirect.current) return;
     hasAttemptedRedirect.current = true;
     openPricing(true);
-  }, []);
+  }, [isFetching, isLoading, navigate, subscriptionData]);
 
   return (
     <Frame>
-      {redirecting && <Loading />}
+      {(redirecting || isLoading || isFetching) && <Loading />}
       <Page
         title="Plan required"
         subtitle="A Shopify managed Pro plan is required before merchants can use the app dashboard."
