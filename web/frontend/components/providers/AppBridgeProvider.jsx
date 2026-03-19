@@ -15,6 +15,12 @@ import { Banner, Layout, Page } from "@shopify/polaris";
 export function AppBridgeProvider({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const runtimeApiKey =
+    process.env.SHOPIFY_API_KEY ||
+    document
+      .querySelector('meta[name="shopify-api-key"]')
+      ?.getAttribute("content") ||
+    "";
   const history = useMemo(
     () => ({
       replace: (path) => {
@@ -43,13 +49,13 @@ export function AppBridgeProvider({ children }) {
 
     return {
       host,
-      apiKey: process.env.SHOPIFY_API_KEY,
+      apiKey: runtimeApiKey,
       forceRedirect: true,
     };
   });
 
-  if (!process.env.SHOPIFY_API_KEY || !appBridgeConfig.host) {
-    const bannerProps = !process.env.SHOPIFY_API_KEY
+  if (!runtimeApiKey || !appBridgeConfig.host) {
+    const bannerProps = !runtimeApiKey
       ? {
           title: "Missing Shopify API Key",
           children: (
