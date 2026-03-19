@@ -65,13 +65,10 @@ app.get("/auth/start", async (req, res) => {
       shop
     )}`;
 
-  if (req.query.embedded === "1" || req.query.host) {
-    return shopify.redirectOutOfApp({
-      req,
-      res,
-      redirectUri: String(redirectUri),
-      shop,
-    });
+  if (isEmbeddedRequest(req)) {
+    return res.redirect(
+      buildExitIframeRedirect(req, shop, String(redirectUri))
+    );
   }
 
   return res.redirect(String(redirectUri));
@@ -365,12 +362,9 @@ app.get("/billing/start", async (req, res) => {
     const redirectUri = getManagedPricingUrl(session.shop);
 
     if (isEmbeddedRequest(req)) {
-      return shopify.redirectOutOfApp({
-        req,
-        res,
-        redirectUri,
-        shop: session.shop,
-      });
+      return res.redirect(
+        buildExitIframeRedirect(req, session.shop, redirectUri)
+      );
     }
 
     return res.redirect(redirectUri);
