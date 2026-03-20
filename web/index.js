@@ -35,6 +35,11 @@ const HTTP_STATUS = {
 const app = express();
 app.set("trust proxy", 1);
 
+app.post(
+  shopify.config.webhooks.path,
+  shopify.processWebhooks({ webhookHandlers: GDPRWebhookHandlers })
+);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -73,11 +78,6 @@ app.get("/auth/start", async (req, res) => {
 
   return res.redirect(String(redirectUri));
 });
-
-app.post(
-  shopify.config.webhooks.path,
-  shopify.processWebhooks({ webhookHandlers: GDPRWebhookHandlers })
-);
 
 function getSession(res) {
   return res.locals?.shopify?.session || null;
