@@ -28,7 +28,7 @@ export default function HomePage() {
   const logo = {
     width: 120,
     topBarSource: brandMark,
-    accessibilityLabel: "LogoFlow Marquee",
+    accessibilityLabel: "mx-brand-logo",
     url: "/",
   };
 
@@ -93,7 +93,7 @@ export default function HomePage() {
   return (
     <Frame topBar={<TopBar />} logo={logo}>
       <Page
-        title="LogoFlow Marquee"
+        title="mx-brand-logo"
         subtitle="Create a polished, scrolling logo strip for brand, partner, and press placements."
       >
         <Layout>
@@ -198,7 +198,7 @@ export default function HomePage() {
                   <h3 style={{ marginBottom: 8 }}>Setup flow</h3>
                   <ol style={{ color: "#475569", lineHeight: 1.8, paddingLeft: 18 }}>
                     <li>Open Shopify Theme Editor</li>
-                    <li>Add the "LogoFlow Marquee" section</li>
+                    <li>Add the "mx-brand-logo" section</li>
                     <li>Upload logos and fine-tune display settings</li>
                     <li>Save, preview, and publish</li>
                   </ol>

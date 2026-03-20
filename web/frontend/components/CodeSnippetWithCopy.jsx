@@ -8,7 +8,7 @@ const QuickSetupGuide = () => {
 
   const codeSnippets = {
     sectionName: `
-LogoFlow Marquee
+mx-brand-logo
     `,
     headingIdea: `
 Trusted by ambitious retail brands

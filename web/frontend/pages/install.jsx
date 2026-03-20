@@ -30,7 +30,7 @@ export default function Installation() {
     width: 120,
     topBarSource: brandMark,
     url: "/",
-    accessibilityLabel: "LogoFlow Marquee",
+    accessibilityLabel: "mx-brand-logo",
   };
 
   const cards = [
@@ -42,7 +42,7 @@ export default function Installation() {
     {
       title: "2. Add the marquee section",
       description:
-        'Choose the page template you want, then add the "LogoFlow Marquee" section from the app blocks list.',
+        'Choose the page template you want, then add the "mx-brand-logo" section from the app blocks list.',
     },
     {
       title: "3. Upload logos and links",
@@ -60,7 +60,7 @@ export default function Installation() {
     <Frame topBar={<TopBar />} logo={logo}>
       <Page
         title="Installation Guide"
-        subtitle="Everything merchants need to launch LogoFlow Marquee without changing theme code."
+        subtitle="Everything merchants need to launch mx-brand-logo without changing theme code."
       >
         <Layout>
           <Layout.Section>
@@ -113,7 +113,7 @@ export default function Installation() {
         <Modal
           open={active}
           onClose={handleChange}
-          title="LogoFlow Marquee setup"
+          title="mx-brand-logo setup"
         >
           <Modal.Section>
             <video

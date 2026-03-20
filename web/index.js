@@ -17,7 +17,7 @@ const STATIC_PATH =
     ? `${process.cwd()}/frontend/dist`
     : `${process.cwd()}/frontend/`;
 
-const APP_NAME = "LogoFlow Marquee";
+const APP_NAME = "mx-brand-logo";
 const PRO_PLAN_NAME = "Pro";
 const BILLING_MODE = "managed";
 const SHOPIFY_APP_HANDLE = process.env.SHOPIFY_APP_HANDLE || "";
