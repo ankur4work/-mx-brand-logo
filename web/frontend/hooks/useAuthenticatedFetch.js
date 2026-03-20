@@ -34,6 +34,11 @@ function checkHeadersForReauthorization(headers) {
       ? `https://${window.location.host}${authUrlHeader}`
       : authUrlHeader;
     const authStartUrl = new URL(withShopQuery("/auth/start"), window.location.origin);
+    const authUrl = new URL(redirectUri, window.location.origin);
+    const shop = authUrl.searchParams.get("shop");
+    if (shop) {
+      authStartUrl.searchParams.set("shop", shop);
+    }
     authStartUrl.searchParams.set("redirectUri", redirectUri);
     window.location.assign(authStartUrl.toString());
   }

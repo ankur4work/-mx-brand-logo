@@ -170,16 +170,12 @@ async function attachOfflineSession(req, res, next) {
 
   const shop = await getShopFromRequest(req);
   if (!shop) {
-    return res.status(HTTP_STATUS.UNAUTHORIZED).send({
-      error: "Missing or invalid shop for this request",
-    });
+    return sendReauthorize(res, getShopFromSessionOrRequest(req, res));
   }
 
   const session = await loadStoredSessionForShop(shop);
   if (!session) {
-    return res.status(HTTP_STATUS.UNAUTHORIZED).send({
-      error: "No stored session found for this shop",
-    });
+    return sendReauthorize(res, shop);
   }
 
   res.locals.shopify = {
@@ -236,6 +232,52 @@ function formatErrorMessage(error) {
 function handleError(res, code, message) {
   console.error(message);
   res.status(code).send({ error: message });
+}
+
+function isShopifyUnauthorizedError(error) {
+  const message = String(error?.message || "");
+  const networkStatusCode = error?.response?.code || error?.networkStatusCode;
+
+  return (
+    networkStatusCode === HTTP_STATUS.UNAUTHORIZED ||
+    message.includes("401 Unauthorized") ||
+    message.includes("GraphQL Client: Unauthorized")
+  );
+}
+
+function getShopFromSessionOrRequest(req, res) {
+  return (
+    getSession(res)?.shop ||
+    shopify.api.utils.sanitizeShop(
+      String(
+        req.query.shop ||
+          req.headers["x-shopify-shop-domain"] ||
+          getShopFromReferrer(req) ||
+          ""
+      )
+    ) ||
+    ""
+  );
+}
+
+function sendReauthorize(res, shop) {
+  if (!shop) {
+    return res.status(HTTP_STATUS.UNAUTHORIZED).send({
+      reauthorize: true,
+      error: "Missing or invalid shop for this request",
+    });
+  }
+
+  const authUrl = `${shopify.config.auth.path}?shop=${encodeURIComponent(shop)}`;
+
+  return res
+    .status(HTTP_STATUS.UNAUTHORIZED)
+    .set("X-Shopify-API-Request-Failure-Reauthorize", "1")
+    .set("X-Shopify-API-Request-Failure-Reauthorize-Url", authUrl)
+    .send({
+      reauthorize: true,
+      authUrl,
+    });
 }
 
 function getStoreHandle(shop) {
@@ -405,11 +447,7 @@ app.get("/api/hasActiveSubscription", async (req, res) => {
   try {
     const session = await getSessionForRequest(req, res);
     if (!session) {
-      return handleError(
-        res,
-        HTTP_STATUS.UNAUTHORIZED,
-        "Unable to resolve an app session for this shop"
-      );
+      return sendReauthorize(res, getShopFromSessionOrRequest(req, res));
     }
 
     const subscription = await BillingManager.getSubscriptionStatus(session);
@@ -421,6 +459,10 @@ app.get("/api/hasActiveSubscription", async (req, res) => {
       activePlanName: subscription.activePlanName,
     });
   } catch (error) {
+    if (isShopifyUnauthorizedError(error)) {
+      return sendReauthorize(res, getShopFromSessionOrRequest(req, res));
+    }
+
     handleError(
       res,
       HTTP_STATUS.INTERNAL_SERVER_ERROR,
@@ -433,11 +475,7 @@ app.get("/api/billing-required", async (req, res) => {
   try {
     const session = await getSessionForRequest(req, res);
     if (!session) {
-      return handleError(
-        res,
-        HTTP_STATUS.UNAUTHORIZED,
-        "Unable to resolve an app session for this shop"
-      );
+      return sendReauthorize(res, getShopFromSessionOrRequest(req, res));
     }
 
     res.status(HTTP_STATUS.OK).send({
@@ -449,6 +487,10 @@ app.get("/api/billing-required", async (req, res) => {
       pricingUrl: getManagedPricingUrl(session.shop),
     });
   } catch (error) {
+    if (isShopifyUnauthorizedError(error)) {
+      return sendReauthorize(res, getShopFromSessionOrRequest(req, res));
+    }
+
     handleError(
       res,
       HTTP_STATUS.INTERNAL_SERVER_ERROR,
@@ -461,11 +503,7 @@ app.get("/billing/start", async (req, res) => {
   try {
     const session = await getSessionForRequest(req, res);
     if (!session) {
-      return handleError(
-        res,
-        HTTP_STATUS.UNAUTHORIZED,
-        "Unable to resolve an app session for this shop"
-      );
+      return sendReauthorize(res, getShopFromSessionOrRequest(req, res));
     }
 
     const redirectUri = getManagedPricingUrl(session.shop);
@@ -478,6 +516,10 @@ app.get("/billing/start", async (req, res) => {
 
     return res.redirect(redirectUri);
   } catch (error) {
+    if (isShopifyUnauthorizedError(error)) {
+      return sendReauthorize(res, getShopFromSessionOrRequest(req, res));
+    }
+
     handleError(
       res,
       HTTP_STATUS.INTERNAL_SERVER_ERROR,
@@ -503,11 +545,7 @@ app.get("/api/createSubscription", async (req, res) => {
   try {
     const session = await getSessionForRequest(req, res);
     if (!session) {
-      return handleError(
-        res,
-        HTTP_STATUS.UNAUTHORIZED,
-        "Unable to resolve an app session for this shop"
-      );
+      return sendReauthorize(res, getShopFromSessionOrRequest(req, res));
     }
 
     const subscription = await BillingManager.getSubscriptionStatus(session);
@@ -526,6 +564,10 @@ app.get("/api/createSubscription", async (req, res) => {
       activePlanName: PRO_PLAN_NAME,
     });
   } catch (error) {
+    if (isShopifyUnauthorizedError(error)) {
+      return sendReauthorize(res, getShopFromSessionOrRequest(req, res));
+    }
+
     handleError(
       res,
       HTTP_STATUS.INTERNAL_SERVER_ERROR,
