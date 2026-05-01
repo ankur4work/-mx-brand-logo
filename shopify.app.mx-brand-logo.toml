@@ -2,7 +2,7 @@
 
 client_id = "04e6f1743b6ee8410507c0768d8282a6"
 name = "mx-brand-logo"
-application_url = "https://mx-brand-logo.solnix.store"
+application_url = "https://oa5j5bfjk9wyp3i167muzk0j.91.239.208.85.sslip.io"
 embedded = true
 handle = "mx-brand-logo-buxton"
 
@@ -14,11 +14,11 @@ api_version = "2026-04"
 
 [[webhooks.subscriptions]]
 compliance_topics = [ "customers/data_request", "customers/redact", "shop/redact" ]
-uri = "https://mx-brand-logo.solnix.store/api/webhooks"
+uri = "https://oa5j5bfjk9wyp3i167muzk0j.91.239.208.85.sslip.io/api/webhooks"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
 scopes = "read_products,write_products"
 
 [auth]
-redirect_urls = [ "https://mx-brand-logo.solnix.store/api/auth/callback" ]
+redirect_urls = [ "https://oa5j5bfjk9wyp3i167muzk0j.91.239.208.85.sslip.io/api/auth/callback" ]
