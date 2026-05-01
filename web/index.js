@@ -35,10 +35,28 @@ const HTTP_STATUS = {
 const app = express();
 app.set("trust proxy", 1);
 
-app.post(
-  shopify.config.webhooks.path,
-  shopify.processWebhooks({ webhookHandlers: GDPRWebhookHandlers })
-);
+app.post(shopify.config.webhooks.path, (req, res, next) => {
+  const chunks = [];
+  req.on("data", (chunk) => chunks.push(chunk));
+  req.on("end", () => {
+    const rawBody = Buffer.concat(chunks).toString("utf8");
+    const receivedHmac = req.headers["x-shopify-hmac-sha256"] || "(missing)";
+    const topic = req.headers["x-shopify-topic"] || "(missing)";
+    const crypto = require("crypto");
+    const expectedHmac = crypto
+      .createHmac("sha256", process.env.SHOPIFY_API_SECRET || "")
+      .update(rawBody, "utf8")
+      .digest("base64");
+    console.log("[webhook-debug] topic:", topic);
+    console.log("[webhook-debug] received-hmac:", receivedHmac);
+    console.log("[webhook-debug] expected-hmac:", expectedHmac);
+    console.log("[webhook-debug] match:", receivedHmac === expectedHmac);
+    console.log("[webhook-debug] body-length:", rawBody.length);
+    console.log("[webhook-debug] body-preview:", rawBody.slice(0, 100));
+    req.rawBody = rawBody;
+    next();
+  });
+}, shopify.processWebhooks({ webhookHandlers: GDPRWebhookHandlers }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
