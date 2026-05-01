@@ -35,37 +35,10 @@ const HTTP_STATUS = {
 const app = express();
 app.set("trust proxy", 1);
 
-app.post(shopify.config.webhooks.path, async (req, res) => {
-  const chunks = [];
-  await new Promise((resolve, reject) => {
-    req.on("data", (chunk) => chunks.push(chunk));
-    req.on("end", resolve);
-    req.on("error", reject);
-  });
-
-  const rawBody = Buffer.concat(chunks).toString("utf8");
-  const receivedHmac = req.headers["x-shopify-hmac-sha256"] || "(missing)";
-  const topic = req.headers["x-shopify-topic"] || "(missing)";
-  const crypto = await import("crypto");
-  const expectedHmac = crypto.default
-    .createHmac("sha256", process.env.SHOPIFY_API_SECRET || "")
-    .update(rawBody, "utf8")
-    .digest("base64");
-
-  console.log("[webhook-debug] topic:", topic);
-  console.log("[webhook-debug] received:", receivedHmac);
-  console.log("[webhook-debug] expected:", expectedHmac);
-  console.log("[webhook-debug] match:", receivedHmac === expectedHmac);
-  console.log("[webhook-debug] body:", rawBody.slice(0, 200));
-
-  shopify.api.webhooks.addHandlers(GDPRWebhookHandlers);
-  try {
-    await shopify.api.webhooks.process({ rawBody, request: req, response: res });
-  } catch (error) {
-    console.error("[webhook-debug] process error:", error.message);
-    if (!res.headersSent) res.status(500).send("Internal Server Error");
-  }
-});
+app.post(
+  shopify.config.webhooks.path,
+  shopify.processWebhooks({ webhookHandlers: GDPRWebhookHandlers })
+);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
