@@ -1,6 +1,7 @@
 // @ts-check
 import { join } from "path";
 import { readFileSync } from "fs";
+import { createHmac, timingSafeEqual } from "crypto";
 import express from "express";
 import serveStatic from "serve-static";
 
@@ -37,7 +38,49 @@ app.set("trust proxy", 1);
 
 app.post(
   shopify.config.webhooks.path,
-  shopify.processWebhooks({ webhookHandlers: GDPRWebhookHandlers })
+  express.text({ type: "*/*" }),
+  async (req, res) => {
+    const rawBody = req.body;
+    const receivedHmac = req.headers["x-shopify-hmac-sha256"] || "";
+
+    if (!receivedHmac) {
+      return res.status(400).send("Missing HMAC header");
+    }
+
+    const expectedHmac = createHmac("sha256", process.env.SHOPIFY_API_SECRET || "")
+      .update(rawBody, "utf8")
+      .digest("base64");
+
+    let valid = false;
+    try {
+      valid = timingSafeEqual(
+        Buffer.from(expectedHmac, "base64"),
+        Buffer.from(receivedHmac, "base64")
+      );
+    } catch (_) {
+      valid = false;
+    }
+
+    if (!valid) {
+      return res.status(401).send("HMAC validation failed");
+    }
+
+    const topic = req.headers["x-shopify-topic"] || "";
+    const shop = req.headers["x-shopify-shop-domain"] || "";
+    const webhookId = req.headers["x-shopify-webhook-id"] || "";
+    const topicKey = topic.replace("/", "_").toUpperCase();
+
+    const handler = GDPRWebhookHandlers[topicKey];
+    if (handler?.callback) {
+      try {
+        await handler.callback(topic, shop, rawBody, webhookId);
+      } catch (e) {
+        console.error("Webhook handler error:", e.message);
+      }
+    }
+
+    return res.status(200).send();
+  }
 );
 
 app.use(express.json());
