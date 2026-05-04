@@ -36,10 +36,6 @@ const HTTP_STATUS = {
 const app = express();
 app.set("trust proxy", 1);
 
-app.get("/health", (_req, res) => {
-  res.status(200).json({ status: "ok" });
-});
-
 app.post(
   shopify.config.webhooks.path,
   express.text({ type: "*/*" }),

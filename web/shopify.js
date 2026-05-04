@@ -37,20 +37,14 @@ console.log(
     : `Using ${sessionStorageMode} session storage`
 );
 
-const HOST = process.env.HOST || "";
-if (!HOST) {
-  console.error("FATAL: HOST environment variable is required");
-  process.exit(1);
-}
-
 const shopify = shopifyApp({
   api: {
     apiVersion: LATEST_API_VERSION,
     restResources,
     apiKey: process.env.SHOPIFY_API_KEY,
     apiSecretKey: process.env.SHOPIFY_API_SECRET,
-    hostName: HOST.replace(/https?:\/\//, ""),
-    scopes: (process.env.SCOPES || "read_products,write_products").split(","),
+    hostName: process.env.HOST.replace(/https?:\/\//, ""),
+    scopes: process.env.SCOPES.split(","),
   },
   auth: {
     path: "/api/auth",
